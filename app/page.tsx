@@ -1,101 +1,233 @@
-import Image from "next/image";
+"use client"
+import { useEffect, useRef, useState } from "react";
 
-export default function Home() {
+const SHAPE_NAMES = ["triangle", "square", "circle", "rectangle"] as const;
+type ShapeName = typeof SHAPE_NAMES[number];
+
+const SHAPE_STYLES: Record<ShapeName, string> = {
+  square: "w-12 h-12 bg-red-500",
+  triangle: "w-0 h-0 border-l-[24px] border-l-transparent border-r-[24px] border-r-transparent border-b-[48px] border-b-blue-500",
+  rectangle: "w-20 h-12 bg-yellow-500 transform rotate-45",
+  circle: "w-12 h-12 bg-green-500 rounded-full",
+};
+
+const SPEED = 1;
+const SHAPE_SIZE = 48;
+
+function generateRandomVelocity() {
+  const angle = Math.random() * 2 * Math.PI;
+  return {
+    x: Math.cos(angle) * SPEED,
+    y: Math.sin(angle) * SPEED
+  }
+}
+
+export default function Page() {
+  const gameRef = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ width: 600, height: 650 });
+
+  useEffect(() => {
+    const updateContainerSize = () => {
+      if (gameRef.current) {
+        setSize({
+          width: gameRef.current.clientWidth,
+          height: gameRef.current.clientHeight - 40, // Subtract header height
+        });
+      }
+    };
+
+    // Set initial size and add resize listener
+    updateContainerSize();
+    window.addEventListener("resize", updateContainerSize);
+
+    return () => window.removeEventListener("resize", updateContainerSize);
+  }, []);
+
+  const [shapes, setShapes] = useState(() =>
+    SHAPE_NAMES.map((shape) => ({
+      type: shape,
+      position: {
+        x: Math.random() * (size.width - SHAPE_SIZE),
+        y: Math.random() * (size.height - SHAPE_SIZE)
+      },
+      velocity: generateRandomVelocity(),
+      visible: false
+    }))
+  );
+
+  useEffect(() => {
+    const moveShapes = () => {
+      setShapes((prevShapes) =>
+        prevShapes.map((shape) => {
+          let { x, y } = shape.position;
+          let { x: vx, y: vy } = shape.velocity;
+
+          // Update positions
+          x += vx;
+          y += vy;
+
+          // Check for collision with box boundaries
+          if (x <= 0 || x >= size.width - SHAPE_SIZE) {
+            vx = -vx;
+            x = Math.max(0, Math.min(x, size.width - SHAPE_SIZE));
+          }
+          if (y <= 0 || y >= size.height - SHAPE_SIZE) {
+            vy = -vy;
+            y = Math.max(0, Math.min(y, size.height - SHAPE_SIZE));
+          }
+
+          return {
+            ...shape,
+            position: { x, y },
+            velocity: { x: vx, y: vy },
+          };
+        })
+      );
+    };
+
+    const intervalId = setInterval(moveShapes, 20);
+    return () => clearInterval(intervalId);
+  }, [size]);
+
+  const [time, setTime] = useState(60);
+  const [attempts, setAttempts] = useState(1);
+  const [start, setStart] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [score, setScore] = useState(0);
+  const [selectedShape, setSelectedShape] = useState("");
+  const [showShape, setShowShape] = useState(false);
+  const [finished, setFinished] = useState(false);
+
+  useEffect(() => {
+    if (gameStarted) {
+      const intervalId = setInterval(() => {
+        setTime((prev) => {
+          if (prev > 0) {
+            return prev - 1;
+          } else {
+            setAttempts((prevAttempts) => prevAttempts + 1);
+            resetGame();
+            return 60;
+          }
+        });
+      }, 1000);
+
+      return () => clearInterval(intervalId);
+    }
+  }, [attempts, gameStarted]);
+
+  const resetGame = () => {
+    setShapes((prevShapes) =>
+      prevShapes.map((shape) => ({
+        ...shape,
+        visible: false,
+      }))
+    );
+    setScore(0);
+    setSelectedShape("");
+  }
+
+  const startGame = () => {
+    setGameStarted(true);
+    setStart(true);
+    showRandomShape();
+  };
+
+  const showRandomShape = () => {
+    setShowShape(true);
+    const randomIndex = Math.floor(Math.random() * shapes.length);
+    setSelectedShape(SHAPE_NAMES[randomIndex]);
+  }
+
+  const handleShapeclick = (shape: ShapeName) => {
+    if (shape === selectedShape) {
+      setScore((prev) => prev + 1);
+      if (score >= 3) {
+        setFinished(true);
+        setGameStarted(false);
+        setStart(false);
+      }
+      else {
+        showRandomShape();
+      }
+    }
+    else {
+      setAttempts((prev) => prev + 1);
+      if (attempts >= 3) {
+        setGameStarted(false);
+        setStart(false);
+        setAttempts(1);
+        setScore(0);
+      }
+    }
+  }
+
+  useEffect(() => {
+    setTimeout(() => {
+      setShowShape(false);
+    }, 2000)
+  }, [showShape])
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="bg-black min-h-screen flex items-center justify-center text-white text-center p-8">
+      <div className="max-w-4xl w-full">
+        <h1 className="text-3xl font-bold mb-4">Identify Shape Challenge</h1>
+        <h3 className="text-xl mb-8">Click on the 2D shape mentioned to verify you're a human</h3>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+        <div
+          ref={gameRef}
+          className="relative h-[400px] sm:h-[500px] md:h-[550px] lg:h-[650px] w-full max-w-[600px] border border-gray-700 rounded-lg"
+        >
+          {!start && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-90 z-10">
+              <h1 className="text-4xl font-bold text-white mb-6">Welcome to Shape Challenge</h1>
+              <p className="text-xl text-gray-300 mb-8">Find the matching shape before time runs out!</p>
+              <button
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-lg font-semibold transition-colors"
+                onClick={startGame}>Start Game</button>
+            </div>
+          )}
+
+          {start && (
+            <div className="flex justify-between border-b border-gray-500 p-2 text-sm sm:text-base">
+              <div>Attempts: {attempts}/3</div>
+              <div>Score : {score} / 3 </div>
+              <div>Timer: {time}s</div>
+            </div>
+          )}
+
+          {start && !showShape && shapes.map((shape, index) => (
+            <div
+              key={index}
+              className={`${SHAPE_STYLES[shape.type]} absolute cursor-pointer transition-transform hover:scale-110`}
+              style={{
+                transform: `translate(${shape.position.x}px, ${shape.position.y}px)`,
+              }}
+              onClick={() => handleShapeclick(shape.type)}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          ))}
+
+          {showShape && (
+            <div className="flex justify-center items-center h-screen">
+              <div className="font-bold text-3xl text-green">
+                {selectedShape}
+              </div>
+            </div>
+
+          )}
+          {attempts > 3 && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75">
+              <div className="text-2xl font-bold text-red-500">Game Failed</div>
+            </div>
+          )}
+          {finished && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75">
+              <div className="text-2xl font-bold text-green-500">Game Completed</div>
+            </div>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="text-2xl m-8">Powered By Goptcha Widget</div>
+      </div>
     </div>
   );
 }
