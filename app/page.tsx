@@ -172,7 +172,7 @@ export default function Page() {
     <div className="bg-black min-h-screen flex items-center justify-center text-white text-center p-8">
       <div className="max-w-4xl w-full">
         <h1 className="text-3xl font-bold mb-4">Identify Shape Challenge</h1>
-        <h3 className="text-xl mb-8">Click on the 2D shape mentioned to verify you're a human</h3>
+        <h3 className="text-xl mb-8">Click on the 2D shape mentioned to verify youre a human</h3>
 
         <div
           ref={gameRef}
