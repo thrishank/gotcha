@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@gotcha-widget/lib": "github:tcerqueira/gotcha-widget-lib#master",
     "next": "15.0.3",
     "react": "^18",
     "react-dom": "^18"
