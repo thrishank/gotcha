@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { onChallengeResponse, onChallengeExpired, onChallengeError } from '@gotcha-widget/lib';
+import {
+  onChallengeResponse,
+  onChallengeExpired,
+  onChallengeError,
+} from "@gotcha-widget/lib";
 
 const SHAPE_NAMES = ["triangle", "square", "circle", "rectangle"] as const;
 type ShapeName = (typeof SHAPE_NAMES)[number];
@@ -30,7 +34,8 @@ export default function Page() {
   const gameRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 600, height: 650 });
 
-  useEffect(() => { // update the size dyanmically 
+  useEffect(() => {
+    // update the size dyanmically
     const updateContainerSize = () => {
       if (gameRef.current) {
         setSize({
@@ -97,7 +102,9 @@ export default function Page() {
   const [score, setScore] = useState(0);
   const [selectedShape, setSelectedShape] = useState("");
   const [showShape, setShowShape] = useState(false);
-  const [gameState, setGameState] = useState<"idle" | "playing" | "success" | "failed">("idle");
+  const [gameState, setGameState] = useState<
+    "idle" | "playing" | "success" | "failed"
+  >("idle");
 
   // Game timer with proper error handling
   useEffect(() => {
@@ -111,7 +118,7 @@ export default function Page() {
             return GAME_TIME;
           });
         } catch (error) {
-          console.log(error)
+          console.log(error);
           onChallengeError();
         }
       }, 1000);
@@ -138,7 +145,7 @@ export default function Page() {
       setGameState("playing");
       showRandomShape();
     } catch (error) {
-      console.log(error)
+      console.log(error);
       onChallengeError();
     }
   };
@@ -149,7 +156,7 @@ export default function Page() {
       const randomIndex = Math.floor(Math.random() * shapes.length);
       setSelectedShape(SHAPE_NAMES[randomIndex]);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       onChallengeError();
     }
   };
@@ -164,7 +171,7 @@ export default function Page() {
           setStart(false);
         }
       } catch (error) {
-        console.log(error)
+        console.log(error);
         onChallengeError();
       }
     }
@@ -213,17 +220,20 @@ export default function Page() {
             <div className="flex justify-between items-center border-b border-gray-700/50 bg-gray-800/50 p-2 text-sm">
               <div className="flex items-center gap-2">
                 <span className="text-gray-400">Score:</span>
-                <span className="text-white">{score}/{REQUIRED_SCORE}</span>
+                <span className="text-white">
+                  {score}/{REQUIRED_SCORE}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-gray-400">Time:</span>
-                <span className={`${time <= 10 ? 'text-red-500' : 'text-white'}`}>
+                <span
+                  className={`${time <= 10 ? "text-red-500" : "text-white"}`}
+                >
                   {time}s
                 </span>
               </div>
             </div>
           )}
-
 
           {gameState === "playing" &&
             !showShape &&
@@ -264,19 +274,30 @@ export default function Page() {
         </div>
 
         <div className="mt-4 p-4 rounded-lg bg-gray-800/50 border border-gray-700/50 backdrop-blur-sm">
-          <h3 className="text-base md:text-lg font-semibold text-white mb-2">How to Play:</h3>
+          <h3 className="text-center text-base md:text-lg font-semibold text-white mb-2">
+            How to Play
+          </h3>
           <ul className="space-y-2 text-sm md:text-base text-gray-300">
             <li className="flex items-start gap-2">
               <span className="text-blue-400">1.</span>
-              <span>A shape name will appear in the center of the screen for 2 seconds</span>
+              <span>
+                A shape name will appear in the center of the screen for 2
+                seconds
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-blue-400">2.</span>
-              <span>Find and click the matching floating shape among the moving shapes</span>
+              <span>
+                Find and click the matching floating shape among the moving
+                shapes
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-blue-400">3.</span>
-              <span>Score {REQUIRED_SCORE} points within {GAME_TIME} seconds to complete the verification</span>
+              <span>
+                Score {REQUIRED_SCORE} points within {GAME_TIME} seconds to
+                complete the verification
+              </span>
             </li>
           </ul>
         </div>
