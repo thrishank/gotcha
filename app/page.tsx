@@ -187,7 +187,7 @@ export default function Page() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center p-4 md:p-8">
       <div className="w-full max-w-4xl mx-auto">
-        <h1 className="text-2xl md:text-4xl font-bold tclext-center text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+        <h1 className="text-2xl md:text-4xl font-bold text-center text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
           Identify Shape Challenge
         </h1>
         <h3 className="text-lg md:text-xl text-gray-300 mb-6 text-center">
