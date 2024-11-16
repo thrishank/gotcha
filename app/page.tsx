@@ -114,6 +114,7 @@ export default function Page() {
           setTime((prev) => {
             if (prev > 0) return prev - 1;
             setGameState("failed");
+            onChallengeResponse(false);
             onChallengeExpired();
             return GAME_TIME;
           });
