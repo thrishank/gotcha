@@ -189,7 +189,7 @@ export default function Page() {
   useEffect(() => {
     setTimeout(() => {
       setShowShape(false);
-    }, 2000);
+    }, 3000);
   }, [showShape]);
 
   return (
